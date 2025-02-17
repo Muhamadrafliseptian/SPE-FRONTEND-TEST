@@ -56,41 +56,73 @@ export class IndexOrder extends Component {
     const { selectedProduct, quantity, orders } = this.state;
     if (!selectedProduct) return;
 
-    const newOrder = {
-      id: selectedProduct.id,
-      name: selectedProduct.name,
-      price: selectedProduct.price,
-      quantity,
-      subtotal: selectedProduct.price * quantity,
-      description: selectedProduct.description,
-      url_image: selectedProduct.url_image,
-    };
+    const existingOrderIndex = orders.findIndex(
+      (order) => order.id === selectedProduct.id
+    );
 
-    if (newOrder.quantity > selectedProduct.stock) {
-      alert(
-        `Maaf stock ${selectedProduct.name} tersisa ${selectedProduct.stock}. mohon kurangi jumlah quantity nya. terima kasih`
-      );
-      return;
+    if (existingOrderIndex !== -1) {
+      const updatedOrders = [...orders];
+      const existingOrder = updatedOrders[existingOrderIndex];
+      const newQuantity = existingOrder.quantity + quantity;
+
+      if (newQuantity > selectedProduct.stock) {
+        alert(
+          `Maaf stock ${selectedProduct.name} tersisa ${selectedProduct.stock}. mohon kurangi jumlah quantity nya. terima kasih`
+        );
+        return;
+      }
+
+      updatedOrders[existingOrderIndex] = {
+        ...existingOrder,
+        quantity: newQuantity,
+        subtotal: selectedProduct.price * newQuantity,
+      };
+
+      this.setState({ orders: updatedOrders, showModal: false });
+    } else {
+      if (quantity > selectedProduct.stock) {
+        alert(
+          `Maaf stock ${selectedProduct.name} tersisa ${selectedProduct.stock}. mohon kurangi jumlah quantity nya. terima kasih`
+        );
+        return;
+      }
+      const newOrder = {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        price: selectedProduct.price,
+        quantity,
+        subtotal: selectedProduct.price * quantity,
+        description: selectedProduct.description,
+        url_image: selectedProduct.url_image,
+        stock: selectedProduct.stock,
+      };
+
+      this.setState({
+        orders: [...orders, newOrder],
+        showModal: false,
+      });
     }
-
-    this.setState({
-      orders: [...orders, newOrder],
-      showModal: false,
-    });
   };
 
   handleIncreaseQuantity = (orderId) => {
-    this.setState((prevState) => ({
-      orders: prevState.orders.map((order) =>
-        order.id === orderId
-          ? {
+    this.setState((prevState) => {
+      return {
+        orders: prevState.orders.map((order) => {
+          if (order.id === orderId) {
+            if (order.quantity + 1 > order.stock) {
+              alert(`Stock ${order.name} tidak mencukupi!. stock tersisa adalah ${order.stock}`);
+              return order;
+            }
+            return {
               ...order,
               quantity: order.quantity + 1,
               subtotal: order.price * (order.quantity + 1),
-            }
-          : order
-      ),
-    }));
+            };
+          }
+          return order;
+        }),
+      };
+    });
   };
 
   handleDecreaseQuantity = (orderId) => {
