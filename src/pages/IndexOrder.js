@@ -66,6 +66,13 @@ export class IndexOrder extends Component {
       url_image: selectedProduct.url_image,
     };
 
+    if (newOrder.quantity > selectedProduct.stock) {
+      alert(
+        `Maaf stock ${selectedProduct.name} tersisa ${selectedProduct.stock}. mohon kurangi jumlah quantity nya. terima kasih`
+      );
+      return;
+    }
+
     this.setState({
       orders: [...orders, newOrder],
       showModal: false,
@@ -191,7 +198,7 @@ export class IndexOrder extends Component {
               ) : (
                 <tr>
                   <td colSpan="8" className="text-center">
-                    No Orders Yet
+                    Belum ada order
                   </td>
                 </tr>
               )}
